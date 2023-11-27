@@ -61,9 +61,9 @@ class CategoriesHome extends Module
         !Configuration::updateValue('SHOWCATEGORYNAME', 0) ||
         !Configuration::updateValue('SHOWCATEGORYDESCRIPTION', 0) ||
         !Configuration::updateValue('IMAGE_SIZE', '') ||
-        !Configuration::updateValue('LARGE_DEVICE', '') ||
-        !Configuration::updateValue('MEDIUM_DEVICE', '') ||
-        !Configuration::updateValue('SMALL_DEVICE', '') ||
+        !Configuration::updateValue('LARGE_DEVICE', 3) ||
+        !Configuration::updateValue('MEDIUM_DEVICE', 4) ||
+        !Configuration::updateValue('SMALL_DEVICE', 12) ||
         !Configuration::updateValue('POSITIONCATEGORIE', '') ||
         !$this->createTable() ||
         !$this->installTab('AdminPositionCategory','Position Catégorie', 'AdminParentThemes')
@@ -113,7 +113,7 @@ class CategoriesHome extends Module
 
         $field_form[0]['form'] = [
             'legend' => [
-                'title' => $this->l('Setings'),
+                'title' => $this->l('Settings'),
             ],
             'input' => [
                 [
@@ -194,18 +194,7 @@ class CategoriesHome extends Module
                     'type' => 'text',
                     'label' => $this->l('Number of column in small device'),
                     'name' => 'SMALL_DEVICE'
-                ],
-                // [
-                //     'type' => 'select',
-                //     'label' => $this->l('choose your group'),
-                //     'name' => 'POSITIONCATEGORIE',
-                //     'required' => true,
-                //     'options' => [
-                //         'query' => $hooks_list,
-                //         'id' => 'id',
-                //         'name' => 'name'
-                //     ]
-                // ],
+                ]
             ],
             'submit' => [
                 'title' => $this->l('save'),
@@ -304,60 +293,11 @@ class CategoriesHome extends Module
     public function hookDisplayFooter($params)
     {
         // récupération du width et du height par rapport au select image de configuration
-            $sql = 'SELECT width, height FROM '._DB_PREFIX_.'image_type WHERE id_image_type = '.Configuration::get('IMAGE_SIZE');
-            $result = DB::getInstance()->executeS($sql);
-        //
-
-        //récupération description category
-
-            $tabCateg = array();
-
-            $categoriesPosition = CategoriesPosition::getCategByPosition();
-
-            foreach ($categoriesPosition as $categoryPosition) {
-                $link = new Link();
-                $categorys = Category::searchByName($this->context->language, $categoryPosition['categorie_name']);
-    
-                $contentCategory = new Category($categorys[0]['id_category']);
-                $descriptionClean = Category::getDescriptionClean($contentCategory->description[$this->context->language->id]);
-                
-                $categImage = $link->getCatImageLink($contentCategory->name,$contentCategory->id_category);
-                $tabCateg[] = array(
-                    'name' => $contentCategory->name[$this->context->language->id],
-                    'description' => $descriptionClean,
-                    'image' => $categImage
-
-                );
-            }
-        //
-
-        $this->smarty->assign(
-            array(
-                'width' => $result[0]['width'],
-                'height' => $result[0]['height'],
-                'tabCateg' => $tabCateg,
-                'displayImage' => Configuration::get('SHOWIMAGE'),
-                'displayTitle' => Configuration::get('SHOWCATEGORYNAME'),
-                'displayDescription' => Configuration::get('SHOWCATEGORYDESCRIPTION')
-            )
-        );
-
-        return $this->display(__FILE__, '/views/templates/hook/blockCategorie.tpl');
-    }
-
-    public function hookhookDisplayFooterBefore($params)
-    {
-        return $this->display(__FILE__, '/views/templates/hook/blockCategorie.tpl');
-    }
-
-    public function hookDisplayHome($params)
-    {
-        // récupération du width et du height par rapport au select image de configuration
         $sql = 'SELECT width, height FROM '._DB_PREFIX_.'image_type WHERE id_image_type = '.Configuration::get('IMAGE_SIZE');
         $result = DB::getInstance()->executeS($sql);
         //
 
-    //récupération description category
+        //récupération description category
 
         $tabCateg = array();
         $link = new Link();
@@ -381,7 +321,113 @@ class CategoriesHome extends Module
 
             );
         }
-    //
+        //
+
+        $this->smarty->assign(
+            array(
+                'width' => $result[0]['width'],
+                'height' => $result[0]['height'],
+                'tabCateg' => $tabCateg,
+                'displayImage' => Configuration::get('SHOWIMAGE'),
+                'displayTitle' => Configuration::get('SHOWCATEGORYNAME'),
+                'displayDescription' => Configuration::get('SHOWCATEGORYDESCRIPTION'),
+                'large_device' => Configuration::get('LARGE_DEVICE'),
+                'medium_device' => Configuration::get('MEDIUM_DEVICE'),
+                'small_device' => Configuration::get('SMALL_DEVICE'),
+            )
+        );
+
+
+        $this->context->controller->registerStylesheet('css-categoryhome','modules/categorieshome/views/css/style.css');
+        
+        return $this->display(__FILE__, '/views/templates/hook/blockCategorie.tpl');
+    }
+
+    public function hookhookDisplayFooterBefore($params)
+    {
+        // récupération du width et du height par rapport au select image de configuration
+        $sql = 'SELECT width, height FROM '._DB_PREFIX_.'image_type WHERE id_image_type = '.Configuration::get('IMAGE_SIZE');
+        $result = DB::getInstance()->executeS($sql);
+        //
+
+        //récupération description category
+
+        $tabCateg = array();
+        $link = new Link();
+
+        $categoriesPosition = CategoriesPosition::getCategByPosition();
+
+        foreach ($categoriesPosition as $categoryPosition) {
+            $categorys = Category::searchByName($this->context->language, $categoryPosition['categorie_name']);
+
+            $contentCategory = new Category((int)$categorys[0]['id_category']);
+            $descriptionClean = Category::getDescriptionClean($contentCategory->description[$this->context->language->id]);
+            $categImage = $link->getCatImageLink($contentCategory->name,$contentCategory->id_category);
+            $url = $link->getCategoryLink($contentCategory);
+
+
+            $tabCateg[] = array(
+                'name' => $contentCategory->name[$this->context->language->id],
+                'description' => $descriptionClean,
+                'image' => Tools::getShopProtocol().$categImage,
+                'url' => $url
+
+            );
+        }
+        //
+
+        $this->smarty->assign(
+            array(
+                'width' => $result[0]['width'],
+                'height' => $result[0]['height'],
+                'tabCateg' => $tabCateg,
+                'displayImage' => Configuration::get('SHOWIMAGE'),
+                'displayTitle' => Configuration::get('SHOWCATEGORYNAME'),
+                'displayDescription' => Configuration::get('SHOWCATEGORYDESCRIPTION'),
+                'large_device' => Configuration::get('LARGE_DEVICE'),
+                'medium_device' => Configuration::get('MEDIUM_DEVICE'),
+                'small_device' => Configuration::get('SMALL_DEVICE'),
+            )
+        );
+
+
+        $this->context->controller->registerStylesheet('css-categoryhome','modules/categorieshome/views/css/style.css');
+        
+        return $this->display(__FILE__, '/views/templates/hook/blockCategorie.tpl');
+    }
+
+    public function hookDisplayHome($params)
+    {
+        // récupération du width et du height par rapport au select image de configuration
+        $sql = 'SELECT width, height FROM '._DB_PREFIX_.'image_type WHERE id_image_type = '.Configuration::get('IMAGE_SIZE');
+        $result = DB::getInstance()->executeS($sql);
+        //
+
+        //récupération description category
+
+        $tabCateg = array();
+        $link = new Link();
+
+        $categoriesPosition = CategoriesPosition::getCategByPosition();
+
+        foreach ($categoriesPosition as $categoryPosition) {
+            $categorys = Category::searchByName($this->context->language, $categoryPosition['categorie_name']);
+
+            $contentCategory = new Category((int)$categorys[0]['id_category']);
+            $descriptionClean = Category::getDescriptionClean($contentCategory->description[$this->context->language->id]);
+            $categImage = $link->getCatImageLink($contentCategory->name,$contentCategory->id_category);
+            $url = $link->getCategoryLink($contentCategory);
+
+
+            $tabCateg[] = array(
+                'name' => $contentCategory->name[$this->context->language->id],
+                'description' => $descriptionClean,
+                'image' => Tools::getShopProtocol().$categImage,
+                'url' => $url
+
+            );
+        }
+        //
 
         $this->smarty->assign(
             array(
@@ -405,6 +451,54 @@ class CategoriesHome extends Module
 
     public function hookDisplayContentWrapperTop($params)
     {
+        // récupération du width et du height par rapport au select image de configuration
+        $sql = 'SELECT width, height FROM '._DB_PREFIX_.'image_type WHERE id_image_type = '.Configuration::get('IMAGE_SIZE');
+        $result = DB::getInstance()->executeS($sql);
+        //
+
+        //récupération description category
+
+        $tabCateg = array();
+        $link = new Link();
+
+        $categoriesPosition = CategoriesPosition::getCategByPosition();
+
+        foreach ($categoriesPosition as $categoryPosition) {
+            $categorys = Category::searchByName($this->context->language, $categoryPosition['categorie_name']);
+
+            $contentCategory = new Category((int)$categorys[0]['id_category']);
+            $descriptionClean = Category::getDescriptionClean($contentCategory->description[$this->context->language->id]);
+            $categImage = $link->getCatImageLink($contentCategory->name,$contentCategory->id_category);
+            $url = $link->getCategoryLink($contentCategory);
+
+
+            $tabCateg[] = array(
+                'name' => $contentCategory->name[$this->context->language->id],
+                'description' => $descriptionClean,
+                'image' => Tools::getShopProtocol().$categImage,
+                'url' => $url
+
+            );
+        }
+        //
+
+        $this->smarty->assign(
+            array(
+                'width' => $result[0]['width'],
+                'height' => $result[0]['height'],
+                'tabCateg' => $tabCateg,
+                'displayImage' => Configuration::get('SHOWIMAGE'),
+                'displayTitle' => Configuration::get('SHOWCATEGORYNAME'),
+                'displayDescription' => Configuration::get('SHOWCATEGORYDESCRIPTION'),
+                'large_device' => Configuration::get('LARGE_DEVICE'),
+                'medium_device' => Configuration::get('MEDIUM_DEVICE'),
+                'small_device' => Configuration::get('SMALL_DEVICE'),
+            )
+        );
+
+
+        $this->context->controller->registerStylesheet('css-categoryhome','modules/categorieshome/views/css/style.css');
+        
         return $this->display(__FILE__, '/views/templates/hook/blockCategorie.tpl');
     }
 }

@@ -8,7 +8,6 @@
 .divContentCategoryFeature
 {
         float: left;
-        width: 20%;
         background: #fff;
         margin: 0.5rem;
 }
@@ -17,3 +16,39 @@
 {
     text-align: center;
 }
+
+/* @media (min-width: 768px) and  (max-width: 991px){ 
+    .divContentCategoryFeature
+    {
+        float: left;
+        background: #fff;
+        margin: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 992px) and  (max-width: 1199px){ 
+    .divContentCategoryFeature
+    {
+        float: left;
+        background: #fff;
+        margin: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 1200px) { 
+    .divContentCategoryFeature
+    {
+        float: left;
+        background: #fff;
+        margin: 0.5rem;
+    }
+} */
+
+
+
