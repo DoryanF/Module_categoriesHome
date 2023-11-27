@@ -1,0 +1,19 @@
+.featureCategories h2
+{
+    text-align: center;
+    font-weight: 500;
+    margin: 2.5rem 0;
+}
+
+.divContentCategoryFeature
+{
+        float: left;
+        width: 20%;
+        background: #fff;
+        margin: 0.5rem;
+}
+
+.divContentCategoryFeature h3
+{
+    text-align: center;
+}
